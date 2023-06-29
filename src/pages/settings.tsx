@@ -201,7 +201,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   if (!currentAccount) {
     context.res = await deleteCookies(context.req.cookies, context.res)
-    return { redirect: { destination: '/sign-in' } }
   }
 
   if (currentAccount?.role !== 'ADMIN') {
