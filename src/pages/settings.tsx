@@ -24,6 +24,7 @@ import prisma from '@/lib/prisma'
 import { Account } from '@prisma/client'
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined'
+import { signOut } from 'next-auth/react'
 
 interface SettingsPageProps {
   currentAccount: Account
@@ -196,6 +197,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       })
     : null
+
+  if (!currentAccount) {
+    return { redirect: { destination: '/sign-in' } }
+  }
 
   if (currentAccount?.role !== 'ADMIN') {
     return { redirect: { destination: '/forbidden' } }
