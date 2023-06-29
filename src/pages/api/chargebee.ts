@@ -20,6 +20,7 @@ export default async function handler(
 
         const data = []
         const invoicesRequested: Result[] = []
+        const customersRequested: Result[] = []
 
         const getAllInvoices = async (offset: string) => {
           const invoiceResponse = await chargebee.invoice
@@ -27,42 +28,61 @@ export default async function handler(
               date: { between: [after, before] },
               recurring: { is: true },
               offset,
-              limit: 10,
+              limit: 100,
             })
             .request()
 
           invoicesRequested.push(...invoiceResponse.list)
 
-          // if (invoiceResponse?.next_offset) {
-          //   await getAllInvoices(invoiceResponse?.next_offset)
-          // }
+          if (invoiceResponse?.next_offset) {
+            await getAllInvoices(invoiceResponse?.next_offset)
+          }
+
+          return
+        }
+
+        const getAllCustomers = async (offset: string) => {
+          const customerResponse = await chargebee.customer
+            .list({
+              offset,
+              limit: 100,
+            })
+            .request()
+
+          customersRequested.push(...customerResponse.list)
+
+          if (customerResponse?.next_offset) {
+            await getAllCustomers(customerResponse?.next_offset)
+          }
 
           return
         }
 
         await getAllInvoices('')
+        await getAllCustomers('')
 
         const invoices = invoicesRequested.map((item) => item.invoice)
+        const customers = customersRequested.map((item) => item.customer)
 
         for (const invoice of invoices) {
-          const customerResponse = await chargebee.customer
-            .retrieve(invoice.customer_id)
-            .request()
-          const customer = customerResponse.customer
+          const customer = customers?.find(
+            ({ id }) => id === invoice.customer_id
+          )
           data.push({
             id: invoice.id,
             customer_id: invoice.customer_id,
             date: invoice.date,
-            start_date: customer.cf_start_date,
+            start_date: customer?.cf_start_date,
             total: invoice.total ? invoice.total / 100 : 0,
-            sales_manager: customer.cf_sales,
-            support_manager: customer.cf_support,
-            company: customer.company,
+            sales_manager: customer?.cf_sales,
+            support_manager: customer?.cf_support,
+            company: customer?.company,
           })
         }
 
         return res.status(200).json(data)
       } catch (error) {
+        console.log('error', error)
         return res.status(500).json({ message: 'Failed to retrieve invoices' })
       }
 
