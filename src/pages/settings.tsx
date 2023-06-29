@@ -49,8 +49,8 @@ const SettingsPage = ({
       role: form.get('role'),
       email: form.get('email'),
       password: form.get('password'),
-      company: currentAccount.companyId,
-      createdBy: currentAccount.id,
+      company: currentAccount?.companyId,
+      createdBy: currentAccount?.id,
     }
 
     axios

@@ -18,7 +18,7 @@ interface HomePageProps {
 }
 
 const HomePage = ({ currentAccount }: HomePageProps) => {
-  const isAdmin = currentAccount.role === 'ADMIN'
+  const isAdmin = currentAccount?.role === 'ADMIN'
   const { push } = useRouter()
 
   const [data, setData] = useState<any[]>([])
@@ -61,7 +61,7 @@ const HomePage = ({ currentAccount }: HomePageProps) => {
           selectedYear,
           selectedMonth,
           isAdmin,
-          currentAccount.name
+          currentAccount?.name
         )
 
         setData(processedByManagers)
@@ -86,10 +86,10 @@ const HomePage = ({ currentAccount }: HomePageProps) => {
           <Typography variant='h5' color='primary'>
             Sales Bonus Management
           </Typography>
-          {currentAccount.name} | {currentAccount.role}
+          {currentAccount?.name} | {currentAccount?.role}
         </Box>
         <Box display='flex' alignItems='center' gap={2}>
-          {currentAccount.role === 'ADMIN' && (
+          {currentAccount?.role === 'ADMIN' && (
             <Button href='/settings' LinkComponent={NextLink}>
               Settings
             </Button>
