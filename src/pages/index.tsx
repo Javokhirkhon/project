@@ -12,14 +12,13 @@ import { getServerSession } from 'next-auth'
 import prisma from '@/lib/prisma'
 import { Account } from '@prisma/client'
 import NextLink from 'next/link'
-import { deleteCookies } from '@/utils/deleteCookies'
 
 interface HomePageProps {
   currentAccount: Account
 }
 
 const HomePage = ({ currentAccount }: HomePageProps) => {
-  const isAdmin = currentAccount.role === 'ADMIN'
+  const isAdmin = currentAccount?.role === 'ADMIN'
   const { push } = useRouter()
 
   const [data, setData] = useState<any[]>([])
@@ -152,10 +151,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       })
     : null
-
-  if (!currentAccount) {
-    context.res = await deleteCookies(context.req.cookies, context.res)
-  }
 
   return {
     props: {

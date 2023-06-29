@@ -24,8 +24,6 @@ import prisma from '@/lib/prisma'
 import { Account } from '@prisma/client'
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined'
-import { signOut } from 'next-auth/react'
-import { deleteCookies } from '@/utils/deleteCookies'
 
 interface SettingsPageProps {
   currentAccount: Account
@@ -198,10 +196,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       })
     : null
-
-  if (!currentAccount) {
-    context.res = await deleteCookies(context.req.cookies, context.res)
-  }
 
   if (currentAccount?.role !== 'ADMIN') {
     return { redirect: { destination: '/forbidden' } }
