@@ -27,15 +27,15 @@ export default async function handler(
               date: { between: [after, before] },
               recurring: { is: true },
               offset,
-              limit: 10,
+              limit: 100,
             })
             .request()
 
           invoicesRequested.push(...invoiceResponse.list)
 
-          // if (invoiceResponse?.next_offset) {
-          //   await getAllInvoices(invoiceResponse?.next_offset)
-          // }
+          if (invoiceResponse?.next_offset) {
+            await getAllInvoices(invoiceResponse?.next_offset)
+          }
 
           return
         }
