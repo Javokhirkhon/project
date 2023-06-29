@@ -65,7 +65,7 @@ export default async function handler(
         const customers = customersRequested.map((item) => item.customer)
 
         for (const invoice of invoices) {
-          const customer = customers?.find(
+          const customer: any = customers?.find(
             ({ id }) => id === invoice.customer_id
           )
           data.push({
