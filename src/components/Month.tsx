@@ -38,7 +38,7 @@ const Month = ({
     monthIndex: number,
     newBonus: number
   ) => {
-    const newData = { ...data }
+    const newData = [...data]
     newData[managerIndex].months[monthIndex].bonus = newBonus
     setData(newData)
   }
