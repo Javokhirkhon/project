@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { hash } from 'bcryptjs'
+import { Bonus } from '@prisma/client'
 
 export default async function handle(
   req: NextApiRequest,
@@ -53,6 +54,37 @@ export default async function handle(
         })
 
         return res.status(201).json(account)
+      } catch (error) {
+        return res.status(500).json({ message: 'Database error' })
+      }
+    case 'PUT':
+      try {
+        const { email, bonuses }: { email: string; bonuses: Bonus[] } = req.body
+
+        await prisma.bonus.deleteMany({
+          where: {
+            id: {
+              in: bonuses.map(({ id }) => id),
+            },
+          },
+        })
+
+        await prisma.account.update({
+          where: {
+            email,
+          },
+          data: {
+            bonuses: {
+              create: bonuses.map(({ date, firstHalf, secondHalf }) => ({
+                date,
+                firstHalf,
+                secondHalf,
+              })),
+            },
+          },
+        })
+
+        return res.status(202).json({ message: 'Successfully updated' })
       } catch (error) {
         return res.status(500).json({ message: 'Database error' })
       }

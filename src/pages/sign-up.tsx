@@ -21,7 +21,7 @@ const SignUpPage = () => {
   const { push } = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     setIsLoading(true)
 
     event.preventDefault()
@@ -35,7 +35,7 @@ const SignUpPage = () => {
       password: form.get('password'),
     }
 
-    axios
+    await axios
       .post('/api/account', data)
       .then(() => push('/sign-in'))
       .catch((err) => {

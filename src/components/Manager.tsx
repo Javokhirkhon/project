@@ -8,28 +8,19 @@ import {
   TableCell,
   Paper,
   Typography,
+  Link,
 } from '@mui/material'
 import Month from './Month'
 import { formatMoney } from '@/utils/formatMoney'
-import { Dispatch, SetStateAction } from 'react'
+import NextLink from 'next/link'
 
 interface ManagerProps {
   manager: { manager: string; invoices: any[]; months: any[] }
   currentMonth: Date
   previousMonth: Date
-  data: any[]
-  setData: Dispatch<SetStateAction<any[]>>
-  managerIndex: number
 }
 
-const Manager = ({
-  manager,
-  currentMonth,
-  previousMonth,
-  data,
-  setData,
-  managerIndex,
-}: ManagerProps) => {
+const Manager = ({ manager, currentMonth, previousMonth }: ManagerProps) => {
   const total = manager.months.reduce((acc, cur) => acc + cur.getTotal(), 0)
 
   const newMRR = manager?.months[manager?.months?.length - 1]?.invoices.reduce(
@@ -67,6 +58,9 @@ const Manager = ({
           <TableRow>
             <TableCell colSpan={5}>
               <Typography variant='h5' fontWeight='bold'>
+                {/* <Link href={`/account/${id}`} component={NextLink}>
+                  {manager.manager}
+                </Link> */}
                 {manager.manager} | New MRR ({formatMoney(newMRR)}) + Expansion
                 ({formatMoney(expansion)}) = Execution ({formatMoney(execution)}
                 )
@@ -95,9 +89,6 @@ const Manager = ({
               key={monthIndex}
               {...{
                 month,
-                data,
-                setData,
-                managerIndex,
                 monthIndex,
               }}
             />

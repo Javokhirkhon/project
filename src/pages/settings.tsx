@@ -5,6 +5,7 @@ import {
   Container,
   Grid,
   IconButton,
+  Link,
   List,
   ListItem,
   ListItemAvatar,
@@ -26,18 +27,15 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined'
 
 interface SettingsPageProps {
-  currentAccount: Account
+  sessionUser: Account
   createdAccounts: Account[]
 }
 
-const SettingsPage = ({
-  currentAccount,
-  createdAccounts,
-}: SettingsPageProps) => {
+const SettingsPage = ({ sessionUser, createdAccounts }: SettingsPageProps) => {
   const { push, replace, asPath } = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     setIsLoading(true)
 
     event.preventDefault()
@@ -49,11 +47,11 @@ const SettingsPage = ({
       role: form.get('role'),
       email: form.get('email'),
       password: form.get('password'),
-      company: currentAccount?.companyId,
-      createdBy: currentAccount?.id,
+      company: sessionUser?.companyId,
+      createdBy: sessionUser?.id,
     }
 
-    axios
+    await axios
       .post('/api/account', data)
       .then(() => push('/'))
       .catch((err) => {
@@ -62,8 +60,8 @@ const SettingsPage = ({
       .finally(() => setIsLoading(false))
   }
 
-  const handleDelete = (email: string) => {
-    axios
+  const handleDelete = async (email: string) => {
+    await axios
       .delete('/api/account', { params: { email } })
       .then(() => replace(asPath))
       .catch((err) => {
@@ -169,11 +167,16 @@ const SettingsPage = ({
               sx={{ pl: 0 }}
             >
               <ListItemAvatar>
-                <Avatar sx={{ bgcolor: 'primary.main' }}>
-                  <AccountCircleOutlinedIcon />
-                </Avatar>
+                <Link href={`/account/${id}`} component={NextLink}>
+                  <Avatar sx={{ bgcolor: 'primary.main' }}>
+                    <AccountCircleOutlinedIcon />
+                  </Avatar>
+                </Link>
               </ListItemAvatar>
-              <ListItemText primary={`${name} - ${role}`} secondary={email} />
+              <ListItemText
+                primary={`${name} - ${role.toLowerCase()}`}
+                secondary={email}
+              />
             </ListItem>
           ))}
         </List>
@@ -189,7 +192,7 @@ export default SettingsPage
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context.req, context.res, authOptions)
 
-  const currentAccount = session?.user?.email
+  const sessionUser = session?.user?.email
     ? await prisma.account.findUnique({
         where: {
           email: session.user.email,
@@ -197,21 +200,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       })
     : null
 
-  if (currentAccount?.role !== 'ADMIN') {
+  if (sessionUser?.role !== 'ADMIN') {
     return { redirect: { destination: '/forbidden' } }
   }
 
-  const createdAccounts = currentAccount
+  const createdAccounts = sessionUser
     ? await prisma.account.findMany({
         where: {
-          createdBy: currentAccount.id,
+          createdBy: sessionUser.id,
         },
       })
     : []
 
   return {
     props: {
-      currentAccount: JSON.parse(JSON.stringify(currentAccount)),
+      sessionUser: JSON.parse(JSON.stringify(sessionUser)),
       createdAccounts: JSON.parse(JSON.stringify(createdAccounts)),
     },
   }

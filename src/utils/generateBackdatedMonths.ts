@@ -1,4 +1,10 @@
-export const generateBackdatedMonths = (date: string, array: any[]) => {
+import { OmittedBonus } from '@/types'
+
+export const generateBackdatedMonths = (
+  date: string,
+  array: any[],
+  sessionUserBonuses: OmittedBonus[]
+) => {
   const currentDate = new Date(date)
   const months = []
 
@@ -18,10 +24,21 @@ export const generateBackdatedMonths = (date: string, array: any[]) => {
         new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
     )
 
+    const formattedStartDate = `${startDate.getFullYear()}-${
+      startDate.getMonth() + 1
+    }`
+
+    const sortedBonus = sessionUserBonuses.find(
+      ({ date }) => date === formattedStartDate
+    )
+
+    const currentBonus =
+      i < 6 ? sortedBonus?.firstHalf : sortedBonus?.secondHalf
+
     months.unshift({
       date: startDate,
       invoices,
-      bonus: 5,
+      bonus: currentBonus || 0,
       getTotal() {
         return (
           (invoices.reduce((acc, cur) => acc + cur.total, 0) * this.bonus) / 100

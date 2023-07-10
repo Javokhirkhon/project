@@ -10,15 +10,15 @@ import { useState } from 'react'
 import { authOptions } from './api/auth/[...nextauth]'
 import { getServerSession } from 'next-auth'
 import prisma from '@/lib/prisma'
-import { Account } from '@prisma/client'
 import NextLink from 'next/link'
+import { ModifiedAccount } from '@/types'
 
 interface HomePageProps {
-  currentAccount: Account
+  sessionUser: ModifiedAccount
 }
 
-const HomePage = ({ currentAccount }: HomePageProps) => {
-  const isAdmin = currentAccount?.role === 'ADMIN'
+const HomePage = ({ sessionUser }: HomePageProps) => {
+  const isAdmin = sessionUser?.role === 'ADMIN'
   const { push } = useRouter()
 
   const [data, setData] = useState<any[]>([])
@@ -38,7 +38,7 @@ const HomePage = ({ currentAccount }: HomePageProps) => {
     setCurrentMonth(new Date(selectedYear, selectedMonth - 1, 1))
     setPreviousMonth(new Date(selectedYear, selectedMonth - 2, 1))
 
-    axios
+    await axios
       .post('/api/chargebee', {
         after:
           formatDate(new Date(Date.UTC(selectedYear, selectedMonth - 2, 1))) -
@@ -61,7 +61,8 @@ const HomePage = ({ currentAccount }: HomePageProps) => {
           selectedYear,
           selectedMonth,
           isAdmin,
-          currentAccount.name
+          sessionUser.name,
+          sessionUser.bonuses
         )
 
         setData(processedByManagers)
@@ -86,10 +87,10 @@ const HomePage = ({ currentAccount }: HomePageProps) => {
           <Typography variant='h5' color='primary'>
             Sales Bonus Management
           </Typography>
-          {currentAccount.name} | {currentAccount.role}
+          {sessionUser.name} | {sessionUser.role}
         </Box>
         <Box display='flex' alignItems='center' gap={2}>
-          {currentAccount.role === 'ADMIN' && (
+          {sessionUser.role === 'ADMIN' && (
             <Button href='/settings' LinkComponent={NextLink}>
               Settings
             </Button>
@@ -128,9 +129,6 @@ const HomePage = ({ currentAccount }: HomePageProps) => {
               manager,
               currentMonth,
               previousMonth,
-              data,
-              setData,
-              managerIndex,
             }}
           />
         ))
@@ -144,17 +142,20 @@ export default HomePage
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context.req, context.res, authOptions)
 
-  const currentAccount = session?.user?.email
+  const sessionUser = session?.user?.email
     ? await prisma.account.findUnique({
         where: {
           email: session.user.email,
+        },
+        include: {
+          bonuses: true,
         },
       })
     : null
 
   return {
     props: {
-      currentAccount: JSON.parse(JSON.stringify(currentAccount)),
+      sessionUser: JSON.parse(JSON.stringify(sessionUser)),
     },
   }
 }

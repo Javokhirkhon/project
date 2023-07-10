@@ -1,13 +1,6 @@
 import { formatMoney } from '@/utils/formatMoney'
-import {
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-  Collapse,
-  TextField,
-} from '@mui/material'
-import { Dispatch, SetStateAction, useState } from 'react'
+import { Table, TableBody, TableRow, TableCell, Collapse } from '@mui/material'
+import { useState } from 'react'
 
 interface MonthProps {
   month: {
@@ -16,32 +9,13 @@ interface MonthProps {
     bonus: number
     getTotal: () => number
   }
-  data: any[]
-  setData: Dispatch<SetStateAction<any[]>>
-  managerIndex: number
   monthIndex: number
 }
 
-const Month = ({
-  month,
-  data,
-  setData,
-  managerIndex,
-  monthIndex,
-}: MonthProps) => {
+const Month = ({ month, monthIndex }: MonthProps) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const total = month?.invoices.reduce((acc, cur) => acc + cur.total, 0)
-
-  const updateBonus = (
-    managerIndex: number,
-    monthIndex: number,
-    newBonus: number
-  ) => {
-    const newData = [...data]
-    newData[managerIndex].months[monthIndex].bonus = newBonus
-    setData(newData)
-  }
 
   return (
     <>
@@ -56,7 +30,7 @@ const Month = ({
             cursor: 'pointer',
           }}
         >
-          {monthIndex}: {isExpanded ? 'Close' : 'Open'}
+          {monthIndex + 1}: {isExpanded ? 'Close' : 'Open'}
         </TableCell>
         <TableCell>
           {new Date(month.date).toLocaleString('default', {
@@ -65,17 +39,7 @@ const Month = ({
           })}
         </TableCell>
         <TableCell>{formatMoney(total)}</TableCell>
-        <TableCell>
-          <TextField
-            label='Bonus'
-            variant='standard'
-            value={month.bonus}
-            type='number'
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              updateBonus(managerIndex, monthIndex, parseInt(e.target.value))
-            }
-          />
-        </TableCell>
+        <TableCell>{month.bonus}</TableCell>
         <TableCell>{formatMoney(month.getTotal())}</TableCell>
       </TableRow>
       <TableRow>

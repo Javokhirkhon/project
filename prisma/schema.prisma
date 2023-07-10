@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -32,4 +29,14 @@ model Account {
   createdAt DateTime @default(now())
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId String @db.ObjectId 
+  bonuses Bonus[]
+}
+
+model Bonus {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  date String
+  firstHalf Int
+  secondHalf Int
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId String @db.ObjectId 
 }
