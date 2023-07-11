@@ -1,5 +1,5 @@
 import { generateBackdatedMonths } from './generateBackdatedMonths'
-import { OmittedBonus } from '@/types'
+import { ModifiedAccount } from '@/types'
 
 export const processManagersData = (
   data: any[],
@@ -7,8 +7,7 @@ export const processManagersData = (
   selectedYear: number,
   selectedMonth: number,
   isAdmin: boolean,
-  sessionUserName: string,
-  sessionUserBonuses: OmittedBonus[]
+  accounts: ModifiedAccount[]
 ) => {
   const uniqueSales = data
     .map(({ sales_manager }) => sales_manager)
@@ -20,13 +19,15 @@ export const processManagersData = (
 
   const uniqueManagers = isAdmin
     ? [...uniqueSales, ...uniqueSupport]
-    : [sessionUserName]
+    : [accounts[0].name]
 
   const processedData = uniqueManagers.map((manager) => {
     const sortedByManagers = data.filter(
       ({ sales_manager, support_manager }) =>
         sales_manager === manager || support_manager === manager
     )
+
+    const currentAccount = accounts.find(({ name }) => name === manager)
 
     return {
       manager,
@@ -38,7 +39,7 @@ export const processManagersData = (
             new Date((date + 18000) * 1000) >=
             new Date(selectedYear, selectedMonth - 1, 1)
         ),
-        sessionUserBonuses
+        currentAccount?.bonuses || []
       ),
     }
   })

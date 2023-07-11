@@ -3,7 +3,7 @@ import { OmittedBonus } from '@/types'
 export const generateBackdatedMonths = (
   date: string,
   array: any[],
-  sessionUserBonuses: OmittedBonus[]
+  bonuses: OmittedBonus[]
 ) => {
   const currentDate = new Date(date)
   const months = []
@@ -28,9 +28,7 @@ export const generateBackdatedMonths = (
       startDate.getMonth() + 1
     }`
 
-    const sortedBonus = sessionUserBonuses.find(
-      ({ date }) => date === formattedStartDate
-    )
+    const sortedBonus = bonuses?.find(({ date }) => date === formattedStartDate)
 
     const currentBonus =
       i < 6 ? sortedBonus?.firstHalf : sortedBonus?.secondHalf

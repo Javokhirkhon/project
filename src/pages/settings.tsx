@@ -192,25 +192,21 @@ export default SettingsPage
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context.req, context.res, authOptions)
 
-  const sessionUser = session?.user?.email
-    ? await prisma.account.findUnique({
-        where: {
-          email: session.user.email,
-        },
-      })
-    : null
+  const sessionUser = await prisma.account.findUnique({
+    where: {
+      email: session?.user?.email || undefined,
+    },
+  })
 
   if (sessionUser?.role !== 'ADMIN') {
     return { redirect: { destination: '/forbidden' } }
   }
 
-  const createdAccounts = sessionUser
-    ? await prisma.account.findMany({
-        where: {
-          createdBy: sessionUser.id,
-        },
-      })
-    : []
+  const createdAccounts = await prisma.account.findMany({
+    where: {
+      createdBy: sessionUser.id,
+    },
+  })
 
   return {
     props: {

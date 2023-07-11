@@ -8,14 +8,16 @@ import {
   TableCell,
   Paper,
   Typography,
-  Link,
 } from '@mui/material'
 import Month from './Month'
 import { formatMoney } from '@/utils/formatMoney'
-import NextLink from 'next/link'
 
 interface ManagerProps {
-  manager: { manager: string; invoices: any[]; months: any[] }
+  manager: {
+    manager: string
+    invoices: any[]
+    months: any[]
+  }
   currentMonth: Date
   previousMonth: Date
 }
@@ -53,14 +55,11 @@ const Manager = ({ manager, currentMonth, previousMonth }: ManagerProps) => {
 
   return (
     <TableContainer component={Paper} style={{ marginBottom: 48 }}>
-      <Table id={manager.manager}>
+      <Table>
         <TableHead>
           <TableRow>
             <TableCell colSpan={5}>
-              <Typography variant='h5' fontWeight='bold'>
-                {/* <Link href={`/account/${id}`} component={NextLink}>
-                  {manager.manager}
-                </Link> */}
+              <Typography variant='h6' fontWeight='bold'>
                 {manager.manager} | New MRR ({formatMoney(newMRR)}) + Expansion
                 ({formatMoney(expansion)}) = Execution ({formatMoney(execution)}
                 )
@@ -97,7 +96,7 @@ const Manager = ({ manager, currentMonth, previousMonth }: ManagerProps) => {
         <TableFooter>
           <TableRow>
             <TableCell colSpan={5} align='right'>
-              <Typography variant='h5' color='primary' fontWeight='bold' mb={2}>
+              <Typography variant='h6' color='primary' fontWeight='bold' mb={2}>
                 Total: {formatMoney(total)}
               </Typography>
             </TableCell>

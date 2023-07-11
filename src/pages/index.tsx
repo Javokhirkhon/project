@@ -12,12 +12,14 @@ import { getServerSession } from 'next-auth'
 import prisma from '@/lib/prisma'
 import NextLink from 'next/link'
 import { ModifiedAccount } from '@/types'
+import { Account } from '@prisma/client'
 
 interface HomePageProps {
-  sessionUser: ModifiedAccount
+  sessionUser: Account
+  accounts: ModifiedAccount[]
 }
 
-const HomePage = ({ sessionUser }: HomePageProps) => {
+const HomePage = ({ sessionUser, accounts }: HomePageProps) => {
   const isAdmin = sessionUser?.role === 'ADMIN'
   const { push } = useRouter()
 
@@ -61,8 +63,7 @@ const HomePage = ({ sessionUser }: HomePageProps) => {
           selectedYear,
           selectedMonth,
           isAdmin,
-          sessionUser.name,
-          sessionUser.bonuses
+          accounts
         )
 
         setData(processedByManagers)
@@ -90,7 +91,7 @@ const HomePage = ({ sessionUser }: HomePageProps) => {
           {sessionUser.name} | {sessionUser.role}
         </Box>
         <Box display='flex' alignItems='center' gap={2}>
-          {sessionUser.role === 'ADMIN' && (
+          {isAdmin && (
             <Button href='/settings' LinkComponent={NextLink}>
               Settings
             </Button>
@@ -142,20 +143,29 @@ export default HomePage
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context.req, context.res, authOptions)
 
-  const sessionUser = session?.user?.email
-    ? await prisma.account.findUnique({
-        where: {
-          email: session.user.email,
-        },
-        include: {
-          bonuses: true,
-        },
-      })
-    : null
+  const sessionUser = await prisma.account.findUnique({
+    where: {
+      email: session?.user?.email || undefined,
+    },
+  })
+
+  const accounts = await prisma.account.findMany({
+    where: {
+      companyId: sessionUser?.companyId,
+      ...(sessionUser?.role === 'ADMIN'
+        ? { role: 'USER' }
+        : { email: sessionUser?.email }),
+    },
+    select: {
+      name: true,
+      bonuses: true,
+    },
+  })
 
   return {
     props: {
       sessionUser: JSON.parse(JSON.stringify(sessionUser)),
+      accounts,
     },
   }
 }
