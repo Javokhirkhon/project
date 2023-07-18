@@ -28,6 +28,12 @@ const SignUpPage = () => {
 
     const form = new FormData(event.currentTarget)
 
+    if (form.get('secret') !== process.env.NEXTAUTH_SECRET) {
+      setIsLoading(false)
+      alert('Secret is invalid')
+      return
+    }
+
     const data = {
       name: form.get('name'),
       company: form.get('company'),
@@ -97,6 +103,15 @@ const SignUpPage = () => {
                 name='password'
                 label='Password'
                 type='password'
+                required
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                id='secret'
+                name='secret'
+                label='Secret'
                 required
                 fullWidth
               />
