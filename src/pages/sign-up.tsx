@@ -13,9 +13,6 @@ import NextLink from 'next/link'
 import { useState } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/router'
-import { getServerSession } from 'next-auth'
-import { authOptions } from './api/auth/[...nextauth]'
-import { GetServerSidePropsContext } from 'next'
 
 const SignUpPage = () => {
   const { push } = useRouter()
@@ -141,15 +138,3 @@ const SignUpPage = () => {
 }
 
 export default SignUpPage
-
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context.req, context.res, authOptions)
-
-  if (session) {
-    return { redirect: { destination: '/' } }
-  }
-
-  return {
-    props: {},
-  }
-}
