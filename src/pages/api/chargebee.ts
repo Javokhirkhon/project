@@ -28,15 +28,15 @@ export default async function handler(
               date: { between: [after, before] },
               recurring: { is: true },
               offset,
-              limit: 100,
+              // limit: 100,
             })
             .request()
 
           invoicesRequested.push(...invoiceResponse.list)
 
-          if (invoiceResponse?.next_offset) {
-            await getAllInvoices(invoiceResponse?.next_offset)
-          }
+          // if (invoiceResponse?.next_offset) {
+          //   await getAllInvoices(invoiceResponse?.next_offset)
+          // }
 
           return
         }
@@ -45,15 +45,15 @@ export default async function handler(
           const customerResponse = await chargebee.customer
             .list({
               offset,
-              limit: 100,
+              // limit: 100,
             })
             .request()
 
           customersRequested.push(...customerResponse.list)
 
-          if (customerResponse?.next_offset) {
-            await getAllCustomers(customerResponse?.next_offset)
-          }
+          // if (customerResponse?.next_offset) {
+          //   await getAllCustomers(customerResponse?.next_offset)
+          // }
 
           return
         }
