@@ -28,15 +28,15 @@ export default async function handler(
               date: { between: [after, before] },
               recurring: { is: true },
               offset,
-              // limit: 100,
+              limit: 100,
             })
             .request()
 
           invoicesRequested.push(...invoiceResponse.list)
 
-          // if (invoiceResponse?.next_offset) {
-          //   await getAllInvoices(invoiceResponse?.next_offset)
-          // }
+          if (invoiceResponse?.next_offset) {
+            await getAllInvoices(invoiceResponse?.next_offset)
+          }
 
           return
         }
@@ -45,15 +45,15 @@ export default async function handler(
           const customerResponse = await chargebee.customer
             .list({
               offset,
-              // limit: 100,
+              limit: 100,
             })
             .request()
 
           customersRequested.push(...customerResponse.list)
 
-          // if (customerResponse?.next_offset) {
-          //   await getAllCustomers(customerResponse?.next_offset)
-          // }
+          if (customerResponse?.next_offset) {
+            await getAllCustomers(customerResponse?.next_offset)
+          }
 
           return
         }
@@ -63,21 +63,24 @@ export default async function handler(
 
         const invoices = invoicesRequested.map((item) => item.invoice)
         const customers = customersRequested.map((item) => item.customer)
+        const optimisedCustomers = new Map(
+          customers.map((customer) => [customer.id, customer])
+        )
 
         for (const invoice of invoices) {
-          const customer: any = customers?.find(
-            ({ id }) => id === invoice.customer_id
-          )
-          data.push({
-            id: invoice.id,
-            customer_id: invoice.customer_id,
-            date: invoice.date,
-            start_date: customer?.cf_start_date,
-            total: invoice.total ? invoice.total / 100 : 0,
-            sales_manager: customer?.cf_sales,
-            support_manager: customer?.cf_support,
-            company: customer?.company,
-          })
+          if (optimisedCustomers.has(invoice.customer_id)) {
+            const customer: any = optimisedCustomers.get(invoice.customer_id)
+            data.push({
+              id: invoice.id,
+              customer_id: invoice.customer_id,
+              date: invoice.date,
+              start_date: customer?.cf_start_date,
+              total: invoice.total ? invoice.total / 100 : 0,
+              sales_manager: customer?.cf_sales,
+              support_manager: customer?.cf_support,
+              company: customer?.company,
+            })
+          }
         }
 
         return res.status(200).json(data)
