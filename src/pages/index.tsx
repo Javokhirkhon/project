@@ -1,8 +1,6 @@
 import Manager from '@/components/Manager'
-import { formatDate } from '@/utils/formatDate'
 import { processManagersData } from '@/utils/processManagersData'
 import { Box, Button, CircularProgress, Typography } from '@mui/material'
-import axios from 'axios'
 import { GetServerSidePropsContext } from 'next'
 import { signOut } from 'next-auth/react'
 import { useRouter } from 'next/router'
@@ -13,7 +11,8 @@ import prisma from '@/lib/prisma'
 import NextLink from 'next/link'
 import { ModifiedAccount } from '@/types'
 import { Account } from '@prisma/client'
-import { Result } from 'chargebee-typescript/lib/result'
+import { getAllCustomers } from '@/utils/getAllCustomers'
+import { getAllInvoices } from '@/utils/getAllInvoices'
 
 interface HomePageProps {
   sessionUser: Account
@@ -29,106 +28,59 @@ const HomePage = ({ sessionUser, accounts }: HomePageProps) => {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [previousMonth, setPreviousMonth] = useState(new Date())
 
-  // const handleSelectMonth = async (
-  //   event: React.ChangeEvent<HTMLInputElement>
-  // ) => {
-  //   setIsLoading(true)
-  //   const [year, month] = event.target.value.split('-')
+  const handleSelectMonth = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setIsLoading(true)
 
-  //   const selectedYear = Number(year)
-  //   const selectedMonth = Number(month)
-
-  //   setCurrentMonth(new Date(selectedYear, selectedMonth - 1, 1))
-  //   setPreviousMonth(new Date(selectedYear, selectedMonth - 2, 1))
-
-  //   await axios
-  //     .post('/api/chargebee', {
-  //       after:
-  //         formatDate(new Date(Date.UTC(selectedYear, selectedMonth - 2, 1))) -
-  //         18000,
-  //       before:
-  //         formatDate(new Date(Date.UTC(selectedYear, selectedMonth, 0))) -
-  //         18000,
-  //     })
-  //     .then((res) => {
-  //       const processedByStartDate = res.data.filter(
-  //         ({ start_date }: { start_date: string }) =>
-  //           new Date(start_date) >=
-  //             new Date(selectedYear, selectedMonth - 12, 1) &&
-  //           new Date(start_date) < new Date(selectedYear, selectedMonth, 0, 24)
-  //       )
-
-  //       const processedByManagers = processManagersData(
-  //         processedByStartDate,
-  //         event.target.value,
-  //         selectedYear,
-  //         selectedMonth,
-  //         isAdmin,
-  //         accounts
-  //       )
-
-  //       setData(processedByManagers)
-  //     })
-  //     .catch((err) => {
-  //       alert(err?.response?.data?.message)
-  //     })
-  //     .finally(() => setIsLoading(false))
-  // }
-
-  const handleTest = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const [year, month] = event.target.value.split('-')
-
     const selectedYear = Number(year)
     const selectedMonth = Number(month)
 
     setCurrentMonth(new Date(selectedYear, selectedMonth - 1, 1))
     setPreviousMonth(new Date(selectedYear, selectedMonth - 2, 1))
 
-    const invoices: Result[] = []
-    const customers: Result[] = []
+    const invoices = await getAllInvoices(selectedYear, selectedMonth, '')
+    const customers = await getAllCustomers('')
 
-    const getAllInvoices = async (offset: string) => {
-      await axios
-        .post('/api/invoices', {
-          after:
-            formatDate(new Date(Date.UTC(selectedYear, selectedMonth - 2, 1))) -
-            18000,
-          before:
-            formatDate(new Date(Date.UTC(selectedYear, selectedMonth, 0))) -
-            18000,
-          offset,
-        })
-        .then(async (res) => {
-          invoices.push(...res.data.list)
-          if (res.data?.next_offset) {
-            await getAllInvoices(res.data?.next_offset)
-          }
-          return
-        })
-        .catch((err) => {
-          alert(err?.response?.data?.message)
-        })
-    }
+    const optimisedCustomers = new Map(
+      customers.map((customer) => [customer.id, customer])
+    )
 
-    const getAllCustomers = async (offset: string) => {
-      await axios
-        .post('/api/customers', {
-          offset,
-        })
-        .then(async (res) => {
-          customers.push(...res.data.list)
-          if (res.data?.next_offset) {
-            await getAllCustomers(res.data?.next_offset)
-          }
-          return
-        })
-        .catch((err) => {
-          alert(err?.response?.data?.message)
-        })
-    }
+    const processedData = invoices
+      .filter((invoice) => optimisedCustomers.has(invoice.customer_id))
+      .map((invoice) => {
+        const customer = optimisedCustomers.get(invoice.customer_id)
+        return {
+          id: invoice.id,
+          customer_id: invoice.customer_id,
+          date: invoice.date,
+          start_date: customer?.cf_start_date,
+          total: invoice.total ? invoice.total / 100 : 0,
+          sales_manager: customer?.cf_sales,
+          support_manager: customer?.cf_support,
+          company: customer?.company,
+        }
+      })
 
-    await getAllInvoices('')
-    await getAllCustomers('')
+    const processedByStartDate = processedData.filter(
+      ({ start_date }: { start_date: string }) =>
+        new Date(start_date) >= new Date(selectedYear, selectedMonth - 12, 1) &&
+        new Date(start_date) < new Date(selectedYear, selectedMonth, 0, 24)
+    )
+
+    const processedByManagers = processManagersData(
+      processedByStartDate,
+      event.target.value,
+      selectedYear,
+      selectedMonth,
+      isAdmin,
+      accounts
+    )
+
+    setData(processedByManagers)
+
+    setIsLoading(false)
   }
 
   return (
@@ -173,7 +125,7 @@ const HomePage = ({ sessionUser, accounts }: HomePageProps) => {
         mb={4}
       >
         <Box fontWeight='bold'>Month:</Box>
-        <input type='month' onChange={handleTest} />
+        <input type='month' onChange={handleSelectMonth} />
       </Box>
       {isLoading ? (
         <Box display='flex' justifyContent='center'>

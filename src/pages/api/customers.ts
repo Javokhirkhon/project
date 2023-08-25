@@ -17,14 +17,17 @@ export default async function handler(
       try {
         const { offset } = req.body
 
-        const customerResponse = await chargebee.customer
+        const { list, next_offset } = await chargebee.customer
           .list({
             offset,
             limit: 100,
           })
           .request()
 
-        return res.status(200).json(customerResponse)
+        return res.status(200).json({
+          list: list.map(({ customer }: { customer: any }) => customer),
+          next_offset,
+        })
       } catch (error) {
         return res.status(500).json({ message: 'Failed to retrieve customers' })
       }

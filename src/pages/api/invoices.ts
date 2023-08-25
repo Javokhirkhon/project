@@ -17,7 +17,7 @@ export default async function handler(
       try {
         const { after, before, offset } = req.body
 
-        const invoiceResponse = await chargebee.invoice
+        const { list, next_offset } = await chargebee.invoice
           .list({
             date: { between: [after, before] },
             recurring: { is: true },
@@ -26,7 +26,10 @@ export default async function handler(
           })
           .request()
 
-        return res.status(200).json(invoiceResponse)
+        return res.status(200).json({
+          list: list.map(({ invoice }: { invoice: any }) => invoice),
+          next_offset,
+        })
       } catch (error) {
         return res.status(500).json({ message: 'Failed to retrieve invoices' })
       }
