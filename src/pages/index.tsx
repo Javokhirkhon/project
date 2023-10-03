@@ -25,8 +25,6 @@ const HomePage = ({ sessionUser, accounts }: HomePageProps) => {
 
   const [data, setData] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [previousMonth, setPreviousMonth] = useState(new Date())
 
   const handleSelectMonth = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -36,9 +34,6 @@ const HomePage = ({ sessionUser, accounts }: HomePageProps) => {
     const [year, month] = event.target.value.split('-')
     const selectedYear = Number(year)
     const selectedMonth = Number(month)
-
-    setCurrentMonth(new Date(selectedYear, selectedMonth - 1, 1))
-    setPreviousMonth(new Date(selectedYear, selectedMonth - 2, 1))
 
     const invoices = await getAllInvoices(selectedYear, selectedMonth, '')
     const customers = await getAllCustomers('')
@@ -133,14 +128,7 @@ const HomePage = ({ sessionUser, accounts }: HomePageProps) => {
         </Box>
       ) : (
         data?.map((manager, managerIndex) => (
-          <Manager
-            key={managerIndex}
-            {...{
-              manager,
-              currentMonth,
-              previousMonth,
-            }}
-          />
+          <Manager key={managerIndex} manager={manager} />
         ))
       )}
     </Box>

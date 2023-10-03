@@ -7,7 +7,8 @@ interface MonthProps {
     date: number
     invoices: { id: string; total: number; company: string }[]
     bonus: number
-    getTotal: () => number
+    expansion: number
+    total: number
   }
   monthIndex: number
 }
@@ -38,9 +39,21 @@ const Month = ({ month, monthIndex }: MonthProps) => {
             year: 'numeric',
           })}
         </TableCell>
-        <TableCell>{formatMoney(total)}</TableCell>
+        <TableCell>
+          {monthIndex === 11 ? (
+            <>
+              Subtotal: {formatMoney(total)}
+              <hr />
+              Expansion: {formatMoney(month.expansion)}
+              <hr />
+              Total: {formatMoney(total + month.expansion)}
+            </>
+          ) : (
+            formatMoney(total)
+          )}
+        </TableCell>
         <TableCell>{month.bonus}</TableCell>
-        <TableCell>{formatMoney(month.getTotal())}</TableCell>
+        <TableCell>{formatMoney(month.total)}</TableCell>
       </TableRow>
       <TableRow>
         <TableCell

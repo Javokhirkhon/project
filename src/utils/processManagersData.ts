@@ -31,7 +31,6 @@ export const processManagersData = (
 
     return {
       manager,
-      invoices: sortedByManagers,
       months: generateBackdatedMonths(
         month,
         sortedByManagers.filter(
@@ -39,7 +38,10 @@ export const processManagersData = (
             new Date((date + 18000) * 1000) >=
             new Date(selectedYear, selectedMonth - 1, 1)
         ),
-        currentAccount?.bonuses || []
+        currentAccount?.bonuses || [],
+        selectedYear,
+        selectedMonth,
+        sortedByManagers
       ),
     }
   })
