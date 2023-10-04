@@ -35,8 +35,12 @@ const HomePage = ({ sessionUser, accounts }: HomePageProps) => {
     const selectedYear = Number(year)
     const selectedMonth = Number(month)
 
-    const invoices = await getAllInvoices(selectedYear, selectedMonth, '')
-    const customers = await getAllCustomers('')
+    const invoices: any[] = await getAllInvoices(
+      selectedYear,
+      selectedMonth,
+      ''
+    )
+    const customers: any[] = await getAllCustomers('')
 
     const optimisedCustomers = new Map(
       customers.map((customer) => [customer.id, customer])

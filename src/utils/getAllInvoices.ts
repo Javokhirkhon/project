@@ -1,8 +1,6 @@
 import axios from 'axios'
 import { formatDate } from './formatDate'
 
-const invoices: any[] = []
-
 export const getAllInvoices = async (
   selectedYear: number,
   selectedMonth: number,
@@ -18,10 +16,15 @@ export const getAllInvoices = async (
       offset,
     })
 
-    invoices.push(...res.data.list)
+    const invoices = res.data.list
 
     if (res.data?.next_offset) {
-      await getAllInvoices(selectedYear, selectedMonth, res.data.next_offset)
+      const recursiveInvoices = await getAllInvoices(
+        selectedYear,
+        selectedMonth,
+        res.data.next_offset
+      )
+      invoices.push(...recursiveInvoices)
     }
 
     return invoices
